@@ -1,0 +1,20 @@
+{
+  "project": {
+    "name": "compass_app",
+    "description": "Android-native compass MVP (Termux-first)",
+    "rules": [
+      ".agent/rules/CORE_RULES.md"
+    ],
+    "skills": [
+      ".agent/skills"
+    ]
+  },
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    }
+  },
+  "tools": {
+    "sandbox": false
+  }
+}

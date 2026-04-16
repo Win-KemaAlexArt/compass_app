@@ -1,0 +1,9 @@
+# Compass App MVP Requirements
+# ВНИМАНИЕ: numpy устанавливать через: pkg install python-numpy (НЕ pip!)
+# затем: python -m venv .venv --system-site-packages
+
+flask>=2.3.0
+
+# Опционально (CLI-режим):
+# rich>=13.0.0
+# textual>=0.40.0
