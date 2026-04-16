@@ -34,6 +34,16 @@ class OrientationState:
 - `def get_sensors_stream(delay_ms: int) -> Generator[RawSensorFrame, None, None]`
 - `def discover_sensors() -> Dict[str, str]`
 
+### `sensors/mock_adapter.py`
+- `__init__(freq_hz: float = 1.0)`: Инициализация с частотой синусоиды.
+- `read() -> dict`: Возвращает детерминированные значения `{"ax":…, "ay":…, "az":…, "mx":…, "my":…, "mz":…}` на основе `sin/cos` от текущего времени.
+
+### `sensors/termux_adapter.py`
+- `__init__(sensor_name: str)`: Инициализация имени датчика.
+- `start()`: Запускает `termux-sensor -s <name> -n 1` через `subprocess`.
+- `read() -> dict`: Парсит JSON-вывод из stdout.
+- `stop()`: Завершает subprocess.
+
 ### `core/orientation.py`
 - `def compute_orientation(raw: RawSensorFrame) -> OrientationState`
 
@@ -47,3 +57,6 @@ class OrientationState:
 - `GET /stream`: SSE stream (EventSource)
 - `POST /calibrate`: trigger calibration
 - `GET /health`: system health check
+
+### `ui/cli_view.py`
+- `def render(state: dict) -> None`: Выводит форматированную строку компаса в stdout. Формат: `[Compass] HDG: {hdg:.1f}° | Tilt: {pitch:.1f}/{roll:.1f} | Cal: {calibrated}`.

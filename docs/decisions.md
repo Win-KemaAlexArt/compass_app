@@ -95,3 +95,17 @@
 - **Reason**: Discrepancies between spec.md and the new task-manager logic caused ambiguity. Skill parameter parsing lacked a formal standard.
 - **Status**: FINAL
 - **Impact**: Updated docs/spec.md, CORE_RULES.md, mcp-configurator/SKILL.md, ui-designer/SKILL.md; Created error-handler skill; Updated GEMINI.md.
+
+## Decision-014: Git Repository Initialization
+- **Date**: 2026-04-16
+- **Decision**: Initialize Git-repository and setup `.gitignore` for Phase 2 preparation.
+- **Reason**: To enable version control and exclude temporary/environment-specific files from the repository.
+- **Status**: FINAL
+- **Impact**: `.gitignore` created, initial commit made.
+
+## Decision-015: Sensor Unit Testing Strategy
+- **Date**: 2026-04-16
+- **Decision**: Implemented `unittest` based sensor verification for `MockAdapter` and `TermuxAdapter`.
+- **Reason**: To ensure data deterministicity and robust subprocess management before Phase 2 implementation.
+- **Status**: FINAL
+- **Impact**: `tests/test_sensors.py` created, basic adapter logic verified.

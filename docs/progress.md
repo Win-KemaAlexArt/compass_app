@@ -18,10 +18,13 @@
 - [x] Agent system audit and 5-patch correction applied (Decision-007 to Decision-011)
 - [x] Knowledge transfer from Binary_Cortex_Fresh: AGENT_DIRECTIVES, ROADMAP_RULES, and ui-designer skill (Decision-012)
 - [x] System consistency and grammar standardization (Decision-013)
+- [x] Task-1.1: Git repository initialized and .gitignore setup (Decision-014)
+- [x] Task-1.2: Supplement docs/api.md with missing interfaces.
+- [x] Task-1.3: Create unit-tests for sensors (tests/test_sensors.py) (Decision-015)
+- [x] Pre-Phase 2 Prep completed.
 
 ## Next Task
 - [ ] Implement `sensors/termux_adapter.py` with JSON stream support.
-- [ ] Create `sensors/mock_adapter.py` for testing.
 
 ## Blockers
 - None.
