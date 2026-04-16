@@ -36,14 +36,15 @@ class TestMockAdapter(unittest.TestCase):
 
 class TestTermuxAdapter(unittest.TestCase):
     def setUp(self):
-        # Using "accelerometer" so read() returns ax/ay/az
-        self.adapter = TermuxAdapter("accelerometer")
+        self.adapter = TermuxAdapter("accelerometer,magnetic")
 
     @patch('subprocess.Popen')
-    def test_termux_read_parses_valid_json(self, mock_popen):
+    def test_termux_read_combined_json(self, mock_popen):
         mock_process = MagicMock()
-        # Mocking readline as it's used in continuous stream
-        mock_process.stdout.readline.return_value = '{"LSM6DSM": {"values": [1.0, 2.0, 3.0]}}\n'
+        mock_process.stdout.readline.return_value = (
+            '{"LSM6DSM Accelerometer": {"values": [1.0, 2.0, 3.0]}, '
+            '"MMC5603NJ Magnetometer": {"values": [4.0, 5.0, 6.0]}}\n'
+        )
         mock_popen.return_value = mock_process
         
         self.adapter.start()
@@ -52,6 +53,9 @@ class TestTermuxAdapter(unittest.TestCase):
         self.assertEqual(res["ax"], 1.0)
         self.assertEqual(res["ay"], 2.0)
         self.assertEqual(res["az"], 3.0)
+        self.assertEqual(res["mx"], 4.0)
+        self.assertEqual(res["my"], 5.0)
+        self.assertEqual(res["mz"], 6.0)
 
     @patch('subprocess.Popen')
     def test_termux_read_handles_malformed_json(self, mock_popen):

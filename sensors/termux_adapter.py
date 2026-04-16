@@ -9,14 +9,13 @@ class TermuxAdapter(BaseSensorAdapter):
     """
     Адаптер для датчиков Termux. Использует утилиту termux-sensor 
     через subprocess для получения данных в реальном времени.
+    Поддерживает чтение одного или нескольких датчиков одновременно.
     """
 
     def __init__(self, sensor_name: str, delay_ms: int = 100):
         self.sensor_name = sensor_name
         self.delay_ms = delay_ms
         self._process = None
-        self._is_accel = "accel" in sensor_name.lower()
-        self._is_mag = "magnet" in sensor_name.lower() or "magnetic" in sensor_name.lower()
 
     def start(self) -> None:
         """Запускает termux-sensor в режиме непрерывного потока."""
@@ -36,7 +35,10 @@ class TermuxAdapter(BaseSensorAdapter):
             raise
 
     def read(self) -> dict | None:
-        """Читает одну строку из stdout процесса и парсит JSON."""
+        """
+        Читает одну строку из stdout процесса и парсит JSON.
+        Возвращает комбинированный словарь данных для всех запрошенных датчиков.
+        """
         if not self._process:
             log.warning("TermuxAdapter.read() called but process is not running")
             return None
@@ -51,32 +53,31 @@ class TermuxAdapter(BaseSensorAdapter):
 
         try:
             data = json.loads(line)
-            # termux-sensor -s name может выводить данные как {"SensorName": {"values": [...]}}
-            # или иногда просто {"values": [...]} в зависимости от версии/флагов.
-            # Мы ищем первый объект с ключом 'values'.
+            result = {}
             
-            values = None
-            if "values" in data:
-                values = data["values"]
-            else:
-                # Ищем во вложенных объектах (по имени датчика)
-                for sensor_data in data.values():
-                    if isinstance(sensor_data, dict) and "values" in sensor_data:
-                        values = sensor_data["values"]
-                        break
-            
-            if values is None or len(values) < 3:
-                log.warning("Malformed sensor data: %s", line)
-                return None
+            # termux-sensor выводит объект, где ключи - имена датчиков
+            for sensor_full_name, sensor_data in data.items():
+                if not isinstance(sensor_data, dict) or "values" not in sensor_data:
+                    continue
+                
+                vals = sensor_data["values"]
+                if len(vals) < 3:
+                    continue
+                
+                name_low = sensor_full_name.lower()
+                if "accel" in name_low:
+                    result.update({"ax": vals[0], "ay": vals[1], "az": vals[2]})
+                elif "magnet" in name_low:
+                    result.update({"mx": vals[0], "my": vals[1], "mz": vals[2]})
+                else:
+                    # Если датчик неизвестен, сохраняем как есть
+                    result[sensor_full_name] = vals
 
-            x, y, z = values[0], values[1], values[2]
-            
-            if self._is_accel:
-                return {"ax": x, "ay": y, "az": z}
-            elif self._is_mag:
-                return {"mx": x, "my": y, "mz": z}
-            else:
-                return {"x": x, "y": y, "z": z}
+            if not result:
+                log.warning("No valid sensor data found in JSON: %s", line)
+                return None
+                
+            return result
 
         except json.JSONDecodeError:
             log.warning("Failed to decode sensor JSON: %s", line)

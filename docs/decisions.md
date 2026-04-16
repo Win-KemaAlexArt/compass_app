@@ -109,3 +109,16 @@
 - **Reason**: To ensure data deterministicity and robust subprocess management before Phase 2 implementation.
 - **Status**: FINAL
 - **Impact**: `tests/test_sensors.py` created, basic adapter logic verified.
+
+## Decision-016: Continuous Stream Reading Strategy
+- **Date**: 2026-04-16
+- **Decision**: Used `stdout.readline()` with `bufsize=1` for `termux-sensor` continuous stream instead of `communicate()`.
+- **Reason**: `communicate()` waits for process termination, which is incompatible with infinite sensor streams. `readline()` allows real-time data processing as it arrives.
+- **Status**: FINAL
+- **Impact**: `TermuxAdapter` now supports 10Hz+ real-time updates.
+
+## Decision-017: Combined Sensor Reading in TermuxAdapter
+- **Date**: 2026-04-16
+- **Decision**: Use a single `TermuxAdapter("accelerometer,magnetic")` that reads a combined JSON and unpacks both sensors in one `read()` call.
+- **Reason**: `spec.md §3.2` explicitly describes this pattern. Two separate adapters would require two processes, causing timestamp desync and increased resource usage.
+- **Impact**: `TermuxAdapter.read()` will return a dictionary with up to 6 keys (`ax,ay,az,mx,my,mz`). Logic will be updated to handle multiple sensors in a single JSON frame.

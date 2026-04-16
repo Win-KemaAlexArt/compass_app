@@ -1,9 +1,9 @@
 # Project Progress (Compass App)
 
 ## Current Status
-- **Current Phase**: Phase 2 (Sensors)
-- **Current Module**: sensors/
-- **Current Task**: Implementation of `sensors/termux_adapter.py`
+- **Current Phase**: Phase 3 (Core Logic)
+- **Current Module**: core/
+- **Current Task**: Implementation of `core/orientation.py`
 - **Status**: IN PROGRESS
 
 ## Completed Tasks
@@ -22,9 +22,10 @@
 - [x] Task-1.2: Supplement docs/api.md with missing interfaces.
 - [x] Task-1.3: Create unit-tests for sensors (tests/test_sensors.py) (Decision-015)
 - [x] Pre-Phase 2 Prep completed.
+- [x] Phase 2: Sensors — base/mock/termux adapters implemented (Decision-016).
 
 ## Next Task
-- [ ] Implement `sensors/termux_adapter.py` with JSON stream support.
+- [ ] Implement `core/orientation.py`: Rotation matrix and Tilt-Compensation.
 
 ## Blockers
 - None.
