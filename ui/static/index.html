@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Compass MVP</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0d1117;
+            color: #c9d1d9;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+        #header {
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            box-sizing: border-box;
+            border-bottom: 1px solid #30363d;
+        }
+        svg {
+            max-width: 300px;
+            width: 90vmin;
+            height: 90vmin;
+            margin: 20px 0;
+        }
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .badge-good { background: #238636; color: white; }
+        .badge-warning { background: #9e6a03; color: white; }
+        .badge-poor { background: #da3633; color: white; }
+        
+        #cardinal-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        #debug-panel {
+            display: none;
+            width: 90%;
+            padding: 10px;
+            background: #161b22;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            min-height: 44px;
+            padding: 0 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+        }
+        button:active { background: #30363d; }
+        #btn-save-cal { display: none; background: #238636; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <span>COMPASS MVP</span>
+        <span id="confidence-badge" class="badge badge-poor">INIT</span>
+    </div>
+
+    <svg id="compass-svg" viewBox="0 0 300 300">
+        <!-- Циферблат -->
+        <circle cx="150" cy="150" r="140" stroke="#30363d" stroke-width="2" fill="none" />
+        <circle cx="150" cy="150" r="5" fill="#c9d1d9" />
+        
+        <!-- Метки сторон света -->
+        <g fill="#c9d1d9" font-size="20" font-weight="bold" text-anchor="middle">
+            <text x="150" y="25">N</text>
+            <text x="150" y="290">S</text>
+            <text x="285" y="157">E</text>
+            <text x="15" y="157">W</text>
+            
+            <g font-size="12">
+                <text x="245" y="60">NE</text>
+                <text x="55" y="60">NW</text>
+                <text x="245" y="250">SE</text>
+                <text x="55" y="250">SW</text>
+            </g>
+        </g>
+
+        <!-- Деления -->
+        <g stroke="#30363d" stroke-width="1">
+            <script>
+                const g = document.querySelector('svg g');
+                for (let i = 0; i < 360; i += 10) {
+                    const length = (i % 90 === 0) ? 15 : 8;
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", "150");
+                    line.setAttribute("y1", "10");
+                    line.setAttribute("x2", "150");
+                    line.setAttribute("y2", 10 + length);
+                    line.setAttribute("transform", `rotate(${i} 150 150)`);
+                    document.getElementById('compass-svg').appendChild(line);
+                }
+            </script>
+        </g>
+
+        <!-- Стрелка -->
+        <g id="needle">
+            <!-- Северная (красная) -->
+            <polygon points="150,30 138,150 162,150" fill="#da3633" />
+            <!-- Южная (серая) -->
+            <polygon points="150,270 138,150 162,150" fill="#666" />
+        </g>
+
+        <!-- Текст курса -->
+        <text id="heading-text" x="150" y="180" text-anchor="middle" font-size="32" font-weight="bold" fill="#c9d1d9">---</text>
+    </svg>
+
+    <div id="cardinal-text">---</div>
+
+    <div id="debug-panel">
+        <div>Pitch: <span id="pitch-val">--</span>°</div>
+        <div>Roll: <span id="roll-val">--</span>°</div>
+        <div>Mag: <span id="mag-val">--</span>µT</div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-calibrate">Calibrate</button>
+        <button id="btn-save-cal">Save Calibration</button>
+        <button id="btn-debug">Debug</button>
+    </div>
+
+    <script>
+        let targetAngle = 0;
+        let currentAngle = 0;
+        let isCalibrating = false;
+
+        const needle = document.getElementById('needle');
+        const headingText = document.getElementById('heading-text');
+        const cardinalText = document.getElementById('cardinal-text');
+        const confidenceBadge = document.getElementById('confidence-badge');
+        const debugPanel = document.getElementById('debug-panel');
+        const btnCalibrate = document.getElementById('btn-calibrate');
+        const btnSaveCal = document.getElementById('btn-save-cal');
+
+        const evtSource = new EventSource('/stream');
+
+        evtSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.heading === undefined) return;
+
+            targetAngle = data.heading;
+            headingText.textContent = String(Math.round(data.heading)).padStart(3, '0') + '°';
+            cardinalText.textContent = data.cardinal || '---';
+            
+            updateConfidenceBadge(data.conf_state, data.confidence);
+            
+            document.getElementById('pitch-val').textContent = data.pitch;
+            document.getElementById('roll-val').textContent = data.roll;
+            document.getElementById('mag-val').textContent = data.mag_mag;
+        };
+
+        evtSource.onerror = function() {
+            confidenceBadge.textContent = 'OFFLINE';
+            confidenceBadge.className = 'badge badge-poor';
+        };
+
+        evtSource.addEventListener('calibration_start', function() {
+            isCalibrating = true;
+            confidenceBadge.textContent = 'CALIBRATING...';
+            confidenceBadge.className = 'badge badge-warning';
+            btnCalibrate.style.display = 'none';
+            btnSaveCal.style.display = 'block';
+        });
+
+        evtSource.addEventListener('calibration_done', function() {
+            isCalibrating = false;
+            confidenceBadge.textContent = 'DONE';
+            confidenceBadge.className = 'badge badge-good';
+            btnSaveCal.style.display = 'none';
+            btnCalibrate.style.display = 'block';
+            setTimeout(() => {
+                if (!isCalibrating) confidenceBadge.textContent = 'GOOD';
+            }, 2000);
+        });
+
+        function updateConfidenceBadge(state, score) {
+            if (isCalibrating) return;
+            const classes = { GOOD: 'badge-good', WARNING: 'badge-warning', POOR: 'badge-poor' };
+            confidenceBadge.textContent = `${state} ${Math.round(score || 0)}`;
+            confidenceBadge.className = `badge ${classes[state] || 'badge-poor'}`;
+        }
+
+        function animateCompass() {
+            // Circular lerp
+            let diff = ((targetAngle - currentAngle) + 540) % 360 - 180;
+            currentAngle += diff * 0.15;
+            currentAngle = ((currentAngle % 360) + 360) % 360;
+
+            needle.style.transform = `rotate(${currentAngle}deg)`;
+            requestAnimationFrame(animateCompass);
+        }
+        requestAnimationFrame(animateCompass);
+
+        document.getElementById('btn-calibrate').addEventListener('click', () => {
+            fetch('/calibrate', { method: 'POST' });
+        });
+
+        document.getElementById('btn-save-cal').addEventListener('click', () => {
+            fetch('/calibrate/save', { method: 'POST' });
+        });
+
+        document.getElementById('btn-debug').addEventListener('click', function() {
+            const isHidden = debugPanel.style.display === 'none' || debugPanel.style.display === '';
+            debugPanel.style.display = isHidden ? 'block' : 'none';
+            this.textContent = isHidden ? 'Hide Debug' : 'Debug';
+        });
+    </script>
+</body>
+</html>

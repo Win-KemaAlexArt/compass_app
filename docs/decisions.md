@@ -122,3 +122,10 @@
 - **Decision**: Use a single `TermuxAdapter("accelerometer,magnetic")` that reads a combined JSON and unpacks both sensors in one `read()` call.
 - **Reason**: `spec.md §3.2` explicitly describes this pattern. Two separate adapters would require two processes, causing timestamp desync and increased resource usage.
 - **Impact**: `TermuxAdapter.read()` will return a dictionary with up to 6 keys (`ax,ay,az,mx,my,mz`). Logic will be updated to handle multiple sensors in a single JSON frame.
+
+## Decision-018: Library Selection for Core Modules
+- **Date**: 2026-04-16
+- **Decision**: Used standard `math` library instead of `numpy` for `filters.py` and `quality.py`.
+- **Reason**: Scalar operations in these modules do not benefit from matrix acceleration. Keeping dependencies minimal where possible. `numpy` remains the choice for `orientation.py` due to future rotation matrix plans.
+- **Status**: FINAL
+- **Impact**: Reduced overhead in filtering loop.
