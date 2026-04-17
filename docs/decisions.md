@@ -159,6 +159,28 @@
         - `sensors/mock_adapter.py`: 93% (Goal: 85%) - OK
         - `sensors/termux_adapter.py`: 71% (Goal: 70%) - OK
         - `ui/web_server.py`: 64% (Goal: 50%) - OK
-    - Known issue: SSE stream has double `data: data:` prefix; requires refactoring in Phase 6.
     - Coverage gaps in `calibration.py` and `quality.py` to be addressed in Phase 5.
 
+## Decision-022: SSE Protocol Refinement
+- **Date**: 2026-04-17
+- **Decision**: Refactored SSE formatting to eliminate double `data:` prefix.
+- **Reason**: Previous implementation resulted in `data: data: {...}` due to redundant formatting in both `push_state` and `stream` generator. Unified formatting into a single `_format_sse` helper called once in `announce`.
+- **Status**: COMPLETED
+- **Impact**: SSE clients (like the Web UI) now correctly parse JSON payloads. Rotating compass visual verified.
+
+## Decision-023: Playwright MCP Configuration
+- **Date**: 2026-04-17
+- **Decision**: Added Playwright MCP server to project settings.
+- **Reason**: To enable automated E2E testing and visual verification of the Web UI. Configured with `--headless` and custom `PLAYWRIGHT_BROWSERS_PATH` to ensure compatibility with Termux environment.
+- **Status**: SUPERSEDED by Decision-024
+- **Impact**: `.gemini/settings.json` updated; `/data/data/com.termux/files/home/.playwright` directory created for browser storage.
+
+## Decision-024: Playwright MCP via CDP for Termux
+- **Date**: 2026-04-17
+- **Decision**: Configured Playwright MCP to connect to a system-installed Chromium via CDP (Chrome DevTools Protocol).
+- **Reason**: Playwright's built-in browser binaries are incompatible with Termux's Bionic libc. System-installed Chromium (from `pkg install chromium`) works correctly. By starting Chromium with `--remote-debugging-port=9222`, Playwright MCP can control it through the CDP endpoint.
+- **Status**: FINAL
+- **Impact**: 
+    - Added `start_browser.sh` to launch Chromium in CDP mode.
+    - Updated `.gemini/settings.json` to use `--cdp-endpoint=http://localhost:9222`.
+    - Workflow: Run `./start_browser.sh` before starting Gemini CLI to enable Playwright tools.

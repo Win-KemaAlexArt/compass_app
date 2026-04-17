@@ -22,3 +22,4 @@ CURRENT_SESSION.md
 # Logs
 *.log
 .coverage
+*.log

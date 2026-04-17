@@ -55,7 +55,7 @@ class AppController:
     def _create_adapter(self):
         if self.args.mock:
             log.info("Using MockAdapter")
-            return MockAdapter(freq_hz=0.5)
+            return MockAdapter(freq_hz=10.0)
         else:
             log.info("Using TermuxAdapter")
             return TermuxAdapter("accelerometer,magnetic")
@@ -137,6 +137,9 @@ class AppController:
                 
                 if self.args.mode in ("cli", "both") or self.args.no_ui:
                     cli_render(payload)
+                
+                # Ограничение частоты цикла (max 20 Hz)
+                time.sleep(0.05)
                 
                 # Проверка триггера калибровки
                 if web_server.get_calibration_trigger().is_set():

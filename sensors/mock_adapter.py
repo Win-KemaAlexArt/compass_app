@@ -25,19 +25,17 @@ class MockAdapter(BaseSensorAdapter):
             return None
 
         t = time.time() - self._start_time
-        # Угловая частота
-        omega = 2 * math.pi * self.freq_hz
         
-        # Акселерометр: имитация легкого покачивания вокруг гравитации
-        ax = math.sin(omega * t) * 0.5
-        ay = math.cos(omega * t) * 0.5
-        az = 9.81
+        # Имитируем медленное вращение: 1 оборот за 10 секунд (0.1 Гц)
+        rotation_freq = 0.1 
+        omega = 2 * math.pi * rotation_freq
         
-        # Магнетометр: имитация вращения вокруг оси Z
-        # Добавляем фазовый сдвиг pi/4
-        phase = math.pi / 4
-        mx = math.sin(omega * t + phase) * 30.0
-        my = math.cos(omega * t + phase) * 30.0
+        # Акселерометр: почти статичен (устройство лежит ровно)
+        ax, ay, az = 0.0, 0.0, 9.81
+        
+        # Магнетометр: вращается в плоскости XY
+        mx = math.sin(omega * t) * 30.0
+        my = math.cos(omega * t) * 30.0
         mz = 15.0
         
         return {

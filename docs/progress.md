@@ -3,7 +3,7 @@
 ## Current Status
 - **Current Phase**: Phase 5 (Testing & Validation)
 - **Current Module**: tests/
-- **Current Task**: Integration testing on real device
+- **Current Task**: E2E Testing with Playwright MCP (CDP Mode)
 - **Status**: IN PROGRESS
 
 ## Completed Tasks
@@ -26,9 +26,10 @@
 - [x] Phase 3: Core Logic — orientation, filters, calibration, quality (Decision-017, Decision-018).
 - [x] Phase 4: UI & Server — Flask SSE, SVG Compass, AppController (Decision-019).
 - [x] Phase 4.5: Environment fix + Integration tests (venv, --system-site-packages, Decision-020, Decision-021).
+- [x] Phase 5.1: Playwright MCP configured via CDP (Decision-024).
 
 ## Next Task
-- [ ] Phase 5: Testing & Validation — Field test on real Android device.
+- [ ] Phase 5.2: Field test on real Android device.
 - [ ] Phase 6: Final Polish.
 
 ## Blockers

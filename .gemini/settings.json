@@ -12,6 +12,15 @@
   "mcpServers": {
     "context7": {
       "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--cdp-endpoint=http://localhost:9222",
+        "--headless"
+      ]
     }
   },
   "tools": {

@@ -23,13 +23,14 @@ class CompassStateAnnouncer:
             self._listeners.append(q)
         return q
 
-    def announce(self, msg: str) -> None:
-        """Рассылает сообщение всем активным слушателям."""
+    def announce(self, msg: str, event: str = None) -> None:
+        """Рассылает сообщение всем активным слушателям в формате SSE."""
+        formatted = _format_sse(msg, event=event)
         with self._lock:
             dead_indices = []
             for i, q in enumerate(self._listeners):
                 try:
-                    q.put_nowait(msg)
+                    q.put_nowait(formatted)
                 except queue.Full:
                     dead_indices.append(i)
             
@@ -61,7 +62,7 @@ def stream():
         while True:
             try:
                 msg = messages.get(timeout=15)
-                yield _format_sse(msg)
+                yield msg  # уже отформатировано в announce()
             except queue.Empty:
                 yield _format_sse("{}", event="heartbeat")
     
@@ -83,12 +84,13 @@ def health():
     return {"status": "ok", "listeners": len(announcer._listeners)}, 200
 
 def push_state(state_dict: dict) -> None:
-    """Пушит состояние (или событие) всем SSE клиентам."""
+    """Сериализует state и кладёт RAW JSON в очередь.
+    Форматирование SSE происходит ТОЛЬКО в генераторе /stream."""
     # Если в словаре есть ключ 'event', форматируем как именованное событие SSE
     event_name = state_dict.pop("event", None)
     payload = json.dumps(state_dict)
-    msg = _format_sse(payload, event=event_name)
-    announcer.announce(msg)
+    # _format_sse вызывается один раз в announce()
+    announcer.announce(payload, event=event_name)
 
 def start_server(port: int = 8080) -> None:
     """Запускает Flask сервер в daemon-потоке."""
