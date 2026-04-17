@@ -1,9 +1,9 @@
 # Project Progress (Compass App)
 
 ## Current Status
-- **Current Phase**: Phase 4 (UI & Server)
-- **Current Module**: ui/
-- **Current Task**: Implementation of `ui/web_server.py`
+- **Current Phase**: Phase 5 (Testing & Validation)
+- **Current Module**: tests/
+- **Current Task**: Integration testing on real device
 - **Status**: IN PROGRESS
 
 ## Completed Tasks
@@ -24,9 +24,12 @@
 - [x] Pre-Phase 2 Prep completed.
 - [x] Phase 2: Sensors — base/mock/termux adapters implemented (Decision-016).
 - [x] Phase 3: Core Logic — orientation, filters, calibration, quality (Decision-017, Decision-018).
+- [x] Phase 4: UI & Server — Flask SSE, SVG Compass, AppController (Decision-019).
+- [x] Phase 4.5: Environment fix + Integration tests (venv, --system-site-packages, Decision-020, Decision-021).
 
 ## Next Task
-- [ ] Implement `ui/web_server.py`: Flask + SSE + CompassStateAnnouncer.
+- [ ] Phase 5: Testing & Validation — Field test on real Android device.
+- [ ] Phase 6: Final Polish.
 
 ## Blockers
 - None.

@@ -129,3 +129,36 @@
 - **Reason**: Scalar operations in these modules do not benefit from matrix acceleration. Keeping dependencies minimal where possible. `numpy` remains the choice for `orientation.py` due to future rotation matrix plans.
 - **Status**: FINAL
 - **Impact**: Reduced overhead in filtering loop.
+
+## Decision-019: Zero External Resource UI
+- **Date**: 2026-04-16
+- **Decision**: All UI assets (CSS, JS, SVG) are inlined into a single `index.html`.
+- **Reason**: To comply with "Zero Internet" constraint and ensure the application works entirely offline in Termux environment without CDN or external dependencies.
+- **Status**: FINAL
+- **Impact**: Simplified deployment and guaranteed availability in isolated environments.
+
+## Decision-020: venv with --system-site-packages
+- **Date**: 2026-04-17
+- **Decision**: venv is created with `--system-site-packages` flag.
+- **Reason**: numpy must be installed via `pkg install` in Termux to ensure Bionic libc ABI compatibility. Standard venv isolates system packages, making pkg-numpy inaccessible. `--system-site-packages` allows the venv to use the system-installed numpy while keeping other dependencies (like flask) isolated.
+- **Status**: FINAL
+- [Impact]: `venv/` added to `.gitignore`. Development and testing must be performed within this venv.
+
+## Decision-021: Code Coverage and Testing Baseline
+- **Date**: 2026-04-17
+- **Decision**: Established a testing baseline with `coverage` measurement.
+- **Reason**: To ensure reliability of core logic and sensors before field testing.
+- **Status**: COMPLETED (Phase 4.5)
+- **Impact**: 
+    - `tests/test_integration.py` created for full pipeline verification.
+    - Coverage Report Summary:
+        - `core/orientation.py`: 100% (Goal: 85%) - OK
+        - `core/filters.py`: 95% (Goal: 90%) - OK
+        - `core/calibration.py`: 79% (Goal: 80%) - Minor debt
+        - `core/quality.py`: 82% (Goal: 90%) - Minor debt
+        - `sensors/mock_adapter.py`: 93% (Goal: 85%) - OK
+        - `sensors/termux_adapter.py`: 71% (Goal: 70%) - OK
+        - `ui/web_server.py`: 64% (Goal: 50%) - OK
+    - Known issue: SSE stream has double `data: data:` prefix; requires refactoring in Phase 6.
+    - Coverage gaps in `calibration.py` and `quality.py` to be addressed in Phase 5.
+
